@@ -36,7 +36,7 @@ The only event in this sequence that embeds a signature by the identity's own ke
 }
 ```
 
-No `username` field exists anywhere. `display_name` is the whole handle, globally unique and case-insensitive. See [identity](./identity.md). (Layer-1 events like the following also carry a per-identity chain position, omitted here; see [event chains](./identity/event-chains.md).)
+No `username` field exists anywhere. Currently, `display_name` is display data with case-insensitive uniqueness enforced per node; the id is the identity. See [identity](./identity.md). Planned: [label/handle model](./names.md). (Layer-1 events like the following also carry a per-identity chain position, omitted here; see [event chains](./identity/event-chains.md).)
 
 ### 2. Nova sets a bio and pronouns
 
