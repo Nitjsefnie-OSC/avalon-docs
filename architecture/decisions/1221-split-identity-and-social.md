@@ -42,7 +42,7 @@ Identity and the ledger provide a root of trust with strict correctness needs; s
 
 - Extract social into its own protocol server crate (router, handlers, projections and realtime) behind public interfaces. Identity/ledger keeps `identity_chain`, `outbox`, settlement, mirroring and nodes. Add three binary targets and generalize the interest registry used for network scope.
 - Separate schemas or databases per role without cross-role foreign keys; a social host keeps its own verified identity view. Split the migration sequence. Development databases are wiped and rebuilt, without compatibility shims.
-- Tag or split OpenAPI by role. SDKs take two base URLs defaulting to the same host; all three SDKs change under one version and release, with conformance vectors updated if signing bytes change. Hub, bot and other consumers adopt the two-endpoint configuration; architecture, hosting and SDK documentation follow.
+- Tag or split OpenAPI by role. SDKs take two base URLs defaulting to the same host; all three SDKs change under one version and release, with conformance vectors updated if signing bytes change. Hub, bot and other consumers adopt the two-endpoint configuration; architecture, hosting and SDK documentation follow. Separately hosted identity and social endpoints qualify the single-URL invariant recorded in [ADR 0672](0672-realtime-websocket-extraction-proxies-through-gateway-not-direct-connect.md). Realtime proxying through the Gateway the client already talks to remains governed by that decision.
 - Release artifacts, installers, container images, the setup wizard and bundled-Postgres packaging need role variants. Social-only hosts need access to at least one identity node; the network needs enough nodes of each kind. This is large, cross-repository work ordered protocol first, then SDKs, then consumers.
 - Under #1223, friend and roster slices become "actor-signed and authorized at projection" rather than "move"; cleanup folds into the eight-kind metadata slice. A social-only host needs the identity chain head and a path to a ledger authority to author and submit events. Structured encoding, v3 signing and the integrator-data slice are unchanged.
 
@@ -54,4 +54,4 @@ Tracked in epic [avalon-protocol#1222](https://github.com/avalon-initiative/aval
 
 ## Related
 
-#1223, #1222, #1214, #1216, #1153, #1150, #1151, #1251, #1252, #291, [ADR 1129](1129-identity-ids-are-self-certifying.md), [ADR 1177](1177-an-account-stays-usable-anywhere-when-its-registering-node-goes-away.md), [nodes](../nodes/README.md).
+#1223, #1222, #1214, #1216, #1153, #1150, #1151, #1251, #1252, #291, [ADR 0672](0672-realtime-websocket-extraction-proxies-through-gateway-not-direct-connect.md), [ADR 1129](1129-identity-ids-are-self-certifying.md), [ADR 1177](1177-an-account-stays-usable-anywhere-when-its-registering-node-goes-away.md), [nodes](../nodes/README.md).
