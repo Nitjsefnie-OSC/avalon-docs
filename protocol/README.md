@@ -44,6 +44,7 @@ Two rules run through every page. An identity and its social data belong to the 
 | [Guilds](./guilds.md) | Implemented | Network-level groups; an integrator is a client, never the owner |
 | [Presence](./presence.md) | Implemented | Ephemeral realtime state, never in durable history |
 | [Privacy](./privacy.md) | Partially implemented | Visibility scopes, aggregates, and erasure versus permanence |
+| [Abuse model](./abuse-model.md) | Planned | Free identities, consent, bounded exposure, and the limits of moderation |
 
 **Integrators, attestations, and trust**
 
