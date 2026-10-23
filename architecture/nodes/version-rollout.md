@@ -14,7 +14,7 @@ Conflating them is the real failure mode.
 
 ## Standing rule for the wire and API axis
 
-Additive only, and forever compatible. Never remove, rename, or repurpose a field or endpoint outright; add alongside and deprecate slowly. One exception was taken once, before the protocol repository became public: a terminology generalization renamed some request and response fields and dropped a compatibility route family, knowingly, because at the time every consumer lived in one repository and was updated in the same change. That argument no longer exists, and the additive rule now applies without exception.
+Ordinary Y/Z releases are additive and stay wire-compatible with the previous version. Never remove, rename, or repurpose a field or endpoint outright; add alongside and deprecate slowly. One exception was taken once, before the protocol repository became public: a terminology generalization renamed some request and response fields and dropped a compatibility route family, knowingly, because at the time every consumer lived in one repository and was updated in the same change. That argument no longer exists. An actual breaking (X) rules-version boundary is the exception to ordinary compatibility, handled by the [planned version-mismatch mechanism](#rules-version-and-activation) specified in [ADR 0797](../decisions/0797-decision-safe-failure-behavior-for-sdk-node-requests-across-a-breaking-x-version-boundary.md).
 
 ## Cross-cutting invariant
 
