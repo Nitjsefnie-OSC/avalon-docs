@@ -39,3 +39,4 @@ An integrator never holds an identity's key and cannot recover it either; point 
 
 - [Recovery and rollback](./recovery.md), [authentication and signing keys](./authentication.md), [identity](../identity.md)
 - [Building an integration](../../integrations/building-an-integration.md), [security model](../security-model.md)
+- [Permanence and redaction](../permanence-and-redaction.md#before-creating-an-identity)

@@ -35,13 +35,14 @@ Two rules run through every page. An identity and its social data belong to the 
 | Page | Status | One line |
 | --- | --- | --- |
 | [Identity](./identity.md) | Implemented | Self-owned, integrator-independent keypair identity; what is promised durable |
+| [Names and handles](./names.md) | Planned | Non-unique display labels, id fingerprints, and domain-proven handles |
 | [Authentication and signing keys](./identity/authentication.md) | Implemented | Passkey login, the event-signing key, fresh-signature tier, pairing, session continuation |
 | [Recovery and rollback](./identity/recovery.md) | Implemented | Guardian-based recovery and post-compromise compensating events |
 | [Per-identity event chains](./identity/event-chains.md) | Partially implemented | Deterministic convergence and fork detection for layer-1 edits |
 | [Identity aggregate view](./identity-aggregate-view.md) | Proposed | The target current-state shape of one identity, and the two data layers |
 | [Aggregate view field reference](./identity-aggregate-view-fields.md) | Reference | Field-by-field table with backing types |
 | [Social graph](./social-graph.md) | Partially implemented | Friends, blocks, and discovery; integrator-facing reads planned |
-| [Guilds](./guilds.md) | Implemented | Network-level groups; an integrator is a client, never the owner |
+| [Guilds](./guilds.md) | Partially implemented | Network-level groups; an integrator is a client, never the owner; committed metadata is Planned |
 | [Presence](./presence.md) | Implemented | Ephemeral realtime state, never in durable history |
 | [Privacy](./privacy.md) | Partially implemented | Visibility scopes, aggregates, and erasure versus permanence |
 
@@ -64,6 +65,8 @@ Two rules run through every page. An identity and its social data belong to the 
 | Page | Status | One line |
 | --- | --- | --- |
 | [Protocol events](./protocol-events.md) | Implemented | The event envelope, pipeline, and versioning policy |
+| [Committed objects](./committed-objects.md) | Planned | Signed profile and guild content, ledger commitments, refetching, and availability |
+| [Permanence and redaction](./permanence-and-redaction.md) | Planned | Permanent authority history and skeletons, best-effort content removal, and limits |
 | [Ledger entry envelope](./ledger-entry-envelope.md) | Partially implemented | The hashed entry layout byte by byte, stored form, and the proposed full envelope |
 | [Event catalogue](./protocol-events-catalogue.md) | Reference | Every event kind, payload, and attribution |
 | [Worked ledger example](./worked-ledger-example.md) | Reference | One user's ledger as real ordered events, and what never appears on it |
