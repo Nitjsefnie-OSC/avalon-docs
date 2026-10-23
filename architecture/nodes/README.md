@@ -101,4 +101,5 @@ Capability negotiation and role-aware node selection on the SDK side (SDKs pick 
 - [Overview](../overview.md)
 - [Settlement](../settlement.md), [distributed topology](../distributed-topology.md), [self-hosting](../self-hosting.md)
 - [Protocol security model](../../protocol/security-model.md)
+- [Permanence and redaction](../../protocol/permanence-and-redaction.md#before-creating-an-identity)
 - [ADR 0672](../decisions/0672-realtime-websocket-extraction-proxies-through-gateway-not-direct-connect.md), [ADR 0903](../decisions/0903-node-participation-must-not-depend-on-public-reachability-nat.md)

@@ -12,6 +12,9 @@ This page covers the model, what the protocol promises to keep durable, and what
 | [Recovery and rollback](./identity/recovery.md) | M-of-N social recovery, the public delay, post-compromise rollback |
 | [The recovery ladder](./identity/recovery-ladder.md) | the order of fallbacks after losing a device, and why total key loss is final |
 | [Per-identity event chains](./identity/event-chains.md) | how concurrent edits converge and how a fork is detected |
+| [Names and handles](./names.md) | the decided separation of display labels, id fingerprints, and domain-proven handles |
+| [Committed objects](./committed-objects.md) | the planned signed profile object and its ledger commitment |
+| [Permanence and redaction](./permanence-and-redaction.md) | what setup should explain about permanent history and best-effort content removal |
 
 ## The model
 
@@ -38,10 +41,12 @@ An identity id is the lowercase hex SHA-256 of the domain tag `avalon-identity-i
 - **Registration.** `POST /identities/register/start` takes `identity_id`, `event_signing_public_key` (base64 raw key), and `display_name`. The server recomputes the id from the key and refuses a mismatch (400 `IDENTITY_ID_MISMATCH`), an unacceptable key or malformed id (400 `INVALID_IDENTITY_ID`), and an id already present on the node (409 `IDENTITY_ID_TAKEN`). Its response carries the ticket, the ledger's network id, and the shard id the node authors. `POST /identities/register/finish` takes a signature by the inception key over the `identity.created` signing bytes (below) and emits `identity.created`, the first passkey event, and `identity.signing_key_added` for the inception key.
 - **The signed bytes.** The [structured layout](./protocol-events.md#canonical-payloads-and-signing-bytes) with tag `avalon.identity.created` and layout version 1: `network_id` and `shard_id` (length-prefixed strings), `ticket_id` (16 raw bytes), `identity_id` and the inception `public_key` (32 raw bytes each), then `display_name` (length-prefixed). Binding the network, shard, and ticket means a copied payload does not verify in another shard or ceremony, and length prefixes mean no field, including a display name containing `:`, can shift another's boundary. The event is not chained, and the ticket id is also the id of the inception signing key, so no key id or chain position is signed separately.
 - **On the ledger.** `identity.created` v2 carries `identity_id`, `ticket_id`, `display_name`, `public_key` (base64), and `signature`, so a reader holding the entry, the network id, and the shard id can recompute the id and verify the signature without asking the node. Version 1 of `identity.created`, `identity.signing_key_added`, and `identity.signing_key_revoked` is no longer decoded.
-- **Display names** stay best-effort unique per node and are never the key anything hangs off. A node that projects another shard's creation does not refuse a taken name (a conflicting second creation for the same identity is still refused); see [names across nodes](#names-across-nodes). Registration refuses a name that, after dropping invisible characters, trimming, and lowercasing, is shaped like an identity id, and names with control, zero-width, or bidirectional-override characters, or longer than 128 characters.
+- **Display names, currently,** stay best-effort unique per node and are never the key anything hangs off. A node that projects another shard's creation does not refuse a taken name (a conflicting second creation for the same identity is still refused); see [names across nodes](#names-across-nodes). Registration refuses a name that, after dropping invisible characters, trimming, and lowercasing, is shaped like an identity id, and names with control, zero-width, or bidirectional-override characters, or longer than 128 characters. Planned: [names and handles](./names.md) separates non-unique labels from domain-proven handles, as decided in [#1215](https://github.com/avalon-initiative/avalon-protocol/issues/1215).
 - **WebAuthn.** The WebAuthn user handle is the first 16 bytes of the id, because the WebAuthn library takes a UUID.
 
 - **Key events and chain position.** A device-grant approval (tag `avalon.device_grant.approved`) signs the grant id, the identity id, the approving key's id, the requested public key, and the identity chain position it extends: `seq` and `prev_hash` (a flag byte, then 32 raw bytes when present). A signing-key revocation (tag `avalon.identity.signing_key_revoked`) signs the identity id, the revoked key's id, the revoking key's id, and the same position. The grant id is also the id of the key the grant creates. The host checks that the signed position is exactly the identity's head plus one; otherwise it answers 409 `IDENTITY_CHAIN_POSITION_STALE` with `head_seq` and `head_hash`, and the client re-signs against that head and retries ([decision #1251](https://github.com/avalon-initiative/avalon-protocol/issues/1251): the client signs the position, the host verifies it). A malformed `prev_hash` is 400 `INVALID_CHAIN_POSITION`. This shipped with OpenAPI 0.13.0 and no compatibility path: v1 and earlier layouts are deleted, and a database from before it is wiped.
+
+Before creating an identity, read [permanence and redaction](./permanence-and-redaction.md#before-creating-an-identity) alongside [the recovery ladder](./identity/recovery-ladder.md): keeping access to an identity and removing published content are separate concerns. While committed objects and signed redaction are not yet implemented, the registration and profile payloads described here still expose profile text on the public ledger ([decision #1125](https://github.com/avalon-initiative/avalon-protocol/issues/1125)).
 
 The conformance vectors `identity-id.json`, `identity-created-signing.json`, `device-grant-approval.json`, and `signing-key-revoked.json` pin the derivation and the signing bytes. They are vendored into `avalon-sdks` and run in the Rust, TypeScript, and C# SDKs as well as the protocol runner.
 
@@ -62,7 +67,9 @@ A node that mirrors a shard and projects its identity events proves each key-bea
 
 #### Names across nodes
 
-An identity's name is display data and the id is the identity. A name already held by another identity is never taken from its holder. A creation authored on this node's own shard is refused when its name is taken, as registration is. A creation projected from another shard is stored under `name~<id prefix>`, using a longer prefix if that is taken too, and finally under the 64-character id itself, which no ordinary name can claim because id lookalikes are not permitted names. The first holder of a name keeps it. Which holder a name resolves to can therefore differ between nodes that saw the creations in a different order, and cross-node names are best effort.
+Current behavior: an identity's name is display data and the id is the identity. A name already held by another identity is never taken from its holder. A creation authored on this node's own shard is refused when its name is taken, as registration is. A creation projected from another shard is stored under `name~<id prefix>`, using a longer prefix if that is taken too, and finally under the 64-character id itself, which no ordinary name can claim because id lookalikes are not permitted names. The first holder of a name keeps it. Which holder a name resolves to can therefore differ between nodes that saw the creations in a different order, and cross-node names are best effort.
+
+Planned: [decision #1215](https://github.com/avalon-initiative/avalon-protocol/issues/1215) removes protocol-level conflict renaming and id-lookalike restrictions; display names become non-unique, untrusted labels, with optional local uniqueness. Clients show a short id fingerprint alongside a label and use [domain-proven handles](./names.md#domain-proven-handles) for trusted names.
 
 #### Rollout
 
@@ -80,7 +87,7 @@ Migration 0084 refuses to run on a node that already holds projected events or s
 
 The profile carries what an identity's owner chooses to say about themselves:
 
-- `display_name`: the globally unique, case-insensitive handle itself. There is no separate discriminator suffix; registration rejects a taken name rather than suggesting one. A node projecting another shard's creation is the one exception, and stores a `~<id prefix>` form instead ([names across nodes](#names-across-nodes)).
+- `display_name`: currently a case-insensitive name with node-local uniqueness checks. Registration rejects a taken name rather than suggesting a discriminator suffix; a node projecting another shard's creation can store a `~<id prefix>` form ([names across nodes](#names-across-nodes)). Planned: a non-unique, untrusted label, distinct from a [domain-proven handle](./names.md), under [decision #1215](https://github.com/avalon-initiative/avalon-protocol/issues/1215).
 - `avatar_url` and `banner_url`: `http`/`https` image URLs.
 - `bio` (up to 500 characters), `pronouns` (40), `status` (100), `location` (100, free text).
 - `favorite_genres`: up to 5 entries from a fixed, small vocabulary, not free text.
@@ -94,6 +101,8 @@ The profile carries what an identity's owner chooses to say about themselves:
 ## What is promised durable
 
 Anything Avalon promises to preserve must be reconstructable from protocol history, and every change to it must emit a protocol event in the same unit of work as the projection change (see [protocol events](./protocol-events.md)). For optional profile fields, `null` in a `profile.updated` payload means the field was explicitly cleared and an absent key means it was untouched.
+
+The table below describes the current inline profile representation. Planned: [decision #1125](https://github.com/avalon-initiative/avalon-protocol/issues/1125) replaces profile content in `identity.created` and `profile.updated` with a commitment to an owner-signed, salted [profile object](./committed-objects.md). The commitment remains durable; the content has the separate [redaction boundary](./permanence-and-redaction.md).
 
 | State | Durable? | Canonical record | Notes |
 | --- | --- | --- | --- |

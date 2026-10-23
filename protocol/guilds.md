@@ -1,6 +1,6 @@
 # Guilds
 
-**Status:** Implemented — with two gaps labeled below: no history read endpoint, and roster and event visibility scopes are still evolving.
+**Status:** Partially implemented — guild operations are built; committed metadata is Planned, there is no history read endpoint, and roster and event visibility scopes are still evolving.
 
 An Avalon guild is a first-class primitive of the network, not of any game. It exists before its members enter a particular integrator, has members playing many integrators at once, and survives any one integrator shutting down. An integrator is a client of a guild, never its owner: membership, roles, permissions, and history belong to the network, and an integrator may render and consume them but cannot govern them with its integrator credentials. The decision is recorded in [ADR 0074](../architecture/decisions/0074-guilds-are-network-level-primitives-not-game-owned.md).
 
@@ -82,6 +82,12 @@ Current projection:  Dragon Hunters, Members: Identity X (Leader)
 ```
 
 The history is reconstructable from [protocol events](./protocol-events.md); the roster is rebuilt from it by the [indexer](../architecture/query-and-indexing.md). These events are public ledger entries naming the member, whatever the guild's `roster_visibility` says: that setting gates the node API's roster read only (see [privacy](./privacy.md#what-the-ledger-makes-public)). That holds for membership and the roster. A guild's name and metadata, role definitions, channels, integrator associations and favorites are server-owned rows: their events are recorded for audit and mirroring but are not replayed, so a rebuild does not restore them and mirror nodes do not hold them ([query and indexing](../architecture/query-and-indexing.md#where-social-state-lives-today); open gap [avalon-protocol#1250](https://github.com/avalon-initiative/avalon-protocol/issues/1250)). **Gap:** the events are durable, but no `GET /guilds/{id}/history` endpoint or indexer read model exposes them to clients yet, so the Hub's history card says so plainly instead of fabricating a feed from the current roster.
+
+## Names, metadata, and redaction
+
+Planned: guild names receive the same non-unique, untrusted-label treatment as identity display names ([decision #1215](https://github.com/avalon-initiative/avalon-protocol/issues/1215)). Guild names and descriptions move into [committed objects](./committed-objects.md), signed by an authorized guild role, under the shared mechanism in [#1313](https://github.com/avalon-initiative/avalon-protocol/issues/1313). This is distinct from the current server-owned metadata and audit events described above.
+
+Membership, roles, links, and revocations remain authority state recorded in full. Where guild content carries intrinsic free text, [signed redaction](./permanence-and-redaction.md#signed-redaction) by the author or a role holding the moderation permission is Planned; conforming nodes will drop the content while retaining its permanent skeleton ([decision #1299](https://github.com/avalon-initiative/avalon-protocol/issues/1299)). That is best-effort removal, separate from the existing [chat deletion path](./guilds/chat-and-events.md#messages-are-not-durable).
 
 ## A user's main guild
 

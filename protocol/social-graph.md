@@ -40,12 +40,16 @@ The same never-reveal rule extends to direct and small-group conversations: a se
 
 ## Handles and discovery
 
-`display_name` is the handle: globally unique and case-insensitive, with no discriminator suffix. Uniqueness is enforced at the write itself by an index, so a concurrent writer cannot race past a prior check, and a taken name is a hard rejection at registration. A node projecting another shard's creation stores a later claimant of a taken name as `name~<id prefix>`, so cross-node names are best effort and the id is the identity ([identity](./identity.md#names-across-nodes)). This follows the current Discord scheme of a globally unique handle rather than the deprecated `name#1234` scheme, whose small numeric space became crowded at scale. `GET /friends/handle/{handle}` resolves an exact handle to an identity id.
+Current behavior: `display_name` is the case-insensitive name used by `GET /friends/handle/{handle}` to resolve an exact name to an identity id. A write-time index enforces local uniqueness, including concurrent writes, and registration rejects a taken name without suggesting a discriminator suffix. A node projecting another shard's creation stores a later claimant of a taken name as `name~<id prefix>`, so cross-node names are best effort and the id is the identity ([identity](./identity.md#names-across-nodes)).
+
+Planned: under [decision #1215](https://github.com/avalon-initiative/avalon-protocol/issues/1215), display names are non-unique, untrusted labels shown beside short id fingerprints. [Domain-proven handles](./names.md#domain-proven-handles) supply trusted names and public resolution without a session or a ledger scan; authenticated discovery remains for labels ([decision #1125](https://github.com/avalon-initiative/avalon-protocol/issues/1125)). The current route's `handle` spelling does not implement that model.
 
 Discovery is two-tier and private by default:
 
 - **Always on, relationship-based.** `GET /people/discover` takes no query parameter: it surfaces friends-of-friends and identities sharing a guild with the caller, minus the caller, existing friends, and blocked relationships. It is read-only; acting on a suggestion still goes through the friend-request endpoint.
-- **Opt-in name search.** `GET /identities/search?q=` matches only identities that switched on the `discoverable` preference (off by default for every identity, no exceptions). Matching is a case-insensitive substring match on the handle. Turning the preference off removes the identity from search immediately, since it is read live on every call. A non-opted-in identity never appears in search even to a caller who knows its exact handle; exact-handle resolution is a separate path.
+- **Opt-in name search.** `GET /identities/search?q=` matches only identities that switched on the `discoverable` preference (off by default for every identity, no exceptions). Matching is a case-insensitive substring match on the display name. Turning the preference off removes the identity from search immediately, since it is read live on every call. A non-opted-in identity never appears in search even to a caller who knows its exact display name; exact-name resolution is a separate path.
+
+The graph remains public history: [decision #1299](https://github.com/avalon-initiative/avalon-protocol/issues/1299) keeps relationships on the ledger as ids. Planned profile commitments and content redaction do not hide those relationships; see [permanence and redaction](./permanence-and-redaction.md) and [current ledger exposure](./privacy.md#what-the-ledger-makes-public).
 
 ## Implementation
 
